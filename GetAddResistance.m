@@ -1,7 +1,7 @@
 function [wj,gradient,curve]=GetAddResistance()
-%% 输出参数
-% wj：附加阻力，单位kN
-% wj，1：N，以起始站后一个点为初始点
+%% Output parameters:
+% wj: Additional resistance, unit: kN
+% wj: 1:N, starting station next point as beginning
 %%
 global Gradient;
 global Curve;
@@ -13,7 +13,7 @@ global Curve;
  global M;
  cur_pos=start_pos;
  
- %% 得到线路坡度矩阵
+ %% Get track gradient information
  gradient=zeros(1,N);
  if end_pos>start_pos
        [row,col]=size(Gradient);
@@ -54,7 +54,8 @@ global Curve;
          end
      end
  end
- %% 得到线路曲线矩阵
+ 
+ %% Get track curve information
   curve=zeros(1,N);
   cur_pos=start_pos;
  if end_pos>start_pos
@@ -97,13 +98,13 @@ global Curve;
      end
  end
  
- %% 得到单位附加阻力矩阵 单位N/KN
+ %% Calculate additional resistance per unit mass, unit: N/KN
  wj=zeros(1,N);
  for i=1:1:N
      if curve(1,i)==0
          wj(1,i)=gradient(1,i)*M*g*10^-3;
      else
-         wj(1,i)=(gradient(1,i)+600/curve(1,i))*M*g*10^-3;%单位kN
+         wj(1,i)=(gradient(1,i)+600/curve(1,i))*M*g*10^-3; % unit: kN
      end
  end
 end

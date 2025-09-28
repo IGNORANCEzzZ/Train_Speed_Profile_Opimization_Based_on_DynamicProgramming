@@ -1,9 +1,9 @@
 function [SpdLimit]=GetSpeedLimit(IsStop)
-%% 输出
-% SpdLimit，限速，单位km/h
-% SpdLimit，1：N，以起始站后一个点为初始点
-%% 输入
-% IsStop:是否在中间站停车
+%% Outputs:
+% SpdLimit: Speed limit, unit: km/h
+% SpdLimit: 1:N, starting station next point as beginning
+%% Input:
+% IsStop: Whether to stop at intermediate stations
 
 %% 
  global SpeedLimit;
@@ -16,7 +16,7 @@ function [SpdLimit]=GetSpeedLimit(IsStop)
  cur_pos=start_pos;
  Speed=SpeedLimit;
  [row_staion,col_station]=size(Station);
-%% 得到线路限速矩阵
+%% Get track speed limit information
  SpdLimit=zeros(1,N);
 
  if end_pos>start_pos
@@ -29,7 +29,7 @@ function [SpdLimit]=GetSpeedLimit(IsStop)
      start_flag=i;
      for j=1:1:N
          cur_pos=cur_pos+step_s;
-         if cur_pos>end_pos%做个末尾的防护
+         if cur_pos>end_pos % Handle end section
              cur_pos=end_pos;
          end
          while(1)
@@ -58,7 +58,7 @@ function [SpdLimit]=GetSpeedLimit(IsStop)
      start_flag=i;
      for j=1:1:N
          cur_pos=cur_pos-step_s;
-         if cur_pos<end_pos%做个末尾的防护
+         if cur_pos<end_pos % Handle end section
              cur_pos=end_pos;
          end
          while(1)

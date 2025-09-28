@@ -1,82 +1,82 @@
-%% »ú³µ¹Ì¶¨²ÎÊı
-global alpha_Re; %ÔÙÉúÖÆ¶¯ÀûÓÃÂÊ
+%% Vehicle dynamics parameters
+global alpha_Re; % Regenerative braking absorption rate
 alpha_Re=0.7;
-global Eta;%»ú³µĞ§ÂÊ
+global Eta; % Traction efficiency
 Eta=0.9;
-global g;%N/kg
+global g; % Gravitational acceleration, N/kg
 g=9.8; 
-global Y;%»Ø×ªÖÊÁ¿ÏµÊı
+global Y; % Rotational inertia coefficient
 Y=0.05;
 global M;
-M=194.295; %ÁĞ³µ×ÜÖØ£¬kg
+M=194.295; % Train mass, kg
 global MaxSpeed;
-MaxSpeed=80; %ÁĞ³µ×î´óËÙ¶È£¬km/h
+MaxSpeed=80; % Maximum train speed, km/h
 
-%% ×î´óÇ£Òı¡¢ÖÆ¶¯Á¦¡¢¼ÓËÙ¶ÈÔ¼Êø
-global Fd_max; %µ¥Î»KN
+%% Train forces: traction and braking, speed constraints
+global Fd_max; % Maximum braking force, KN
 Fd_max=166;
-global Ft_max; %µ¥Î»KN
+global Ft_max; % Maximum traction force, KN
 Ft_max=203;
-global a_max;%µ¥Î»m/s^2
+global a_max; % Maximum acceleration, m/s^2
 a_max=1;
-global a_min;%µ¥Î»m/s^2
+global a_min; % Minimum acceleration (deceleration), m/s^2
 a_min=-1;
 
-%% ²½³¤¡¢¿Õ¼äÀëÉ¢µãÊı
-global step_s;%²½³¤
+%% Spatial domain discretization
+global step_s; % Step size
 step_s=10;
 global startStation;
 startStation=6;
 global endStation;
 endStation=8;
-global Station %³µÕ¾Î»ÖÃ
-Station = xlsread('03-ÏßÂ·²ÎÊı','A1-A14³µÕ¾');
-global start_pos;%¿ªÊ¼µãÎ»ÖÃ£¬µ¥Î»m
+global Station % Station positions
+Station = xlsread('03-çº¿è·¯æ•°æ®','A1-A14è½¦ç«™');
+global start_pos; % Starting position, unit: m
 start_pos=Station(startStation);
-global end_pos;%½áÊøµãÎ»ÖÃ£¬µ¥Î»m
+global end_pos; % End position, unit: m
 end_pos=Station(endStation);
-global N;%xÖá£¬¾àÀëÀëÉ¢µãÊı
+global N; % Number of discrete points in space (x-axis)
 N=ceil(abs(start_pos-end_pos)/step_s);
 
-%% ËÙ¶È¾«¶È¡¢ËÙ¶ÈÀëÉ¢µãÊı
+%% Speed axis values and speed discretization
 global step_v;
-step_v=0.1;%m/s
+step_v=0.1; % Speed discretization step, m/s
 
 global Speed_N;
 Speed_N=ceil(MaxSpeed/3.6/step_v);
 
-%% Ô¤ÏÈ¶ÁÈ¡µÄÏŞËÙ¡¢ÆÂ¶È¡¢ÇúÏßĞÅÏ¢
+%% Pre-load speed limit, gradient, and curve information
 global SpeedLimit;
-SpeedLimit=xlsread('03-ÏßÂ·²ÎÊı','A1-A14ÏŞËÙ');
+SpeedLimit=xlsread('03-çº¿è·¯æ•°æ®','A1-A14é™é€Ÿ');
 global Gradient;
-Gradient = xlsread('03-ÏßÂ·²ÎÊı','A1-A14ÆÂ¶È');
+Gradient = xlsread('03-çº¿è·¯æ•°æ®','A1-A14å¡åº¦');
 global Curve;
- Curve = xlsread('03-ÏßÂ·²ÎÊı','A1-A14ÇúÏß');
+ Curve = xlsread('03-çº¿è·¯æ•°æ®','A1-A14æ›²çº¿');
 
-%% ¶ËµãÔ¼Êø
+%% Boundary constraints
 global v0;
 v0=0;
 global vend;
 vend=0;
 global Fe0;
-Fe0=203;%³õÊ¼µÄÁĞ³µÇ£ÒıÁ¦-ÖÆ¶¯Á¦???
+Fe0=203; % Initial train force: traction-braking force
 global t0;
 t0=0;
 
-%% ×¼µãÔ¼Êø
-global T;%ÔËĞĞÊ±¼äÔ¼Êø£¬µ¥Î»Ãë
+%% Punctuality constraints
+global T; % Running time constraint, unit: seconds
 T=220; 
-global epsi_t; %Ê±¼äÔ¼ÊøµÄÎó²î
+global epsi_t; % Time constraint softening coefficient
 epsi_t=0.99*T;
-global lambda_T;%Ê±¼ä³Í·£Òò×Ó
+global lambda_T; % Time penalty coefficient
 lambda_T=1e8;
-global t_exp; %×ÓÇø¼äÆÚÍûÔËĞĞÊ±¼ä£¬µ¥Î»s
-v_average=abs(start_pos-end_pos)/T;%Æ½¾ùËÙ¶È£¬m/s
+global t_exp; % Expected running time for each step, unit: s
+v_average=abs(start_pos-end_pos)/T; % Average speed, m/s
 t_exp=step_s/v_average;
 
-%% Ô¤ÏÈµÃµ½µÄ¿Õ¼äÀëÉ¢»¯µÄÏŞËÙ¡¢ÏßÂ·¸½¼Ó×èÁ¦¡¢×ø±êÖá£¬×î´óÄÜÁ¦ÇúÏß
-global wj;% 1:N
+%% Pre-compute spatial discrete coordinates, gradients, and track curve information to reduce computational complexity and ensure efficiency
+global wj; % Additional resistance, 1:N
 [wj,~,~]=GetAddResistance();
-global Dis_Space;% 1:N+1
-global MaxCapacityV;%1:N+1
+global Dis_Space; % Discrete space coordinates, 1:N+1
+global MaxCapacityV; % Maximum capacity speeds, 1:N+1
 [Dis_Space,MaxCapacityV]=MaxCapacityCurve(1);
