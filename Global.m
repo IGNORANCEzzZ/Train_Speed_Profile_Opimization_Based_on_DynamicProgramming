@@ -26,7 +26,7 @@ a_min=-1;
 
 %% Step size and spatial discrete points
 global step_s; % Step size
-step_s=1;
+step_s=5;  % Increased from 1m to 5m for significant speedup
 global startStation;
 startStation=1;
 global endStation;
@@ -42,7 +42,7 @@ N=ceil(abs(start_pos-end_pos)/step_s);
 
 %% Speed precision and speed discrete points
 global step_v;
-step_v=0.01; % Speed discretization step, m/s
+step_v=0.1; % Increased from 0.01 to 0.1 m/s for massive speedup
 
 global Speed_N;
 Speed_N=ceil(MaxSpeed/3.6/step_v);

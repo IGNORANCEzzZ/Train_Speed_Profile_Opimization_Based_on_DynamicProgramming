@@ -1,6 +1,47 @@
 % Test script for train speed profile optimization
 clc;
-Global;
+
+% Choose optimization mode for speed
+fprintf('=== Dynamic Programming Speed Optimization ===\n');
+fprintf('Choose mode:\n');
+fprintf('1. Fast mode (recommended for testing)\n');
+fprintf('2. Balanced mode (good accuracy + speed)\n');
+fprintf('3. Accurate mode (high precision)\n');
+fprintf('4. Original mode (very slow!)\n');
+
+% Auto select balanced mode for demonstration
+mode_choice = 2;
+switch mode_choice
+    case 1
+        mode = 'fast';
+    case 2
+        mode = 'balanced';
+    case 3
+        mode = 'accurate';
+    case 4
+        mode = 'original';
+end
+
+fprintf('\nSelected: %s mode\n', mode);
+fprintf('===============================================\n\n');
+
+% Configure and load parameters
+Global;  % Load basic parameters
+ConfigureOptimization(mode);  % Apply optimization settings
+
+% Reload dependent parameters
+[wj,~,~]=GetAddResistance();
+[Dis_Space,MaxCapacityV]=MaxCapacityCurve(1);
+
+% Display problem size
+fprintf('=== Problem Size Analysis ===\n');
+fprintf('Distance: %.0f m\n', abs(end_pos - start_pos));
+fprintf('Spatial steps (N): %d\n', N);
+fprintf('Speed steps (Speed_N): %d\n', Speed_N);
+fprintf('Matrix size per iteration: %d x %d\n', Speed_N+1, Speed_N+1);
+fprintf('Total memory per iteration: %.1f MB\n', (Speed_N+1)^2 * 8 / 1024^2);
+fprintf('Estimated speedup vs original: %.0fx\n', (1/0.01 / (1/step_v)) * (1/step_s));
+fprintf('==============================\n\n');
 
 global T;
 global epsi_t;
