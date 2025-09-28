@@ -1,7 +1,252 @@
 # Train Speed Profile Optimization Based on Dynamic Programming
 
+A MATLAB implementation for optimizing train speed profiles using dynamic programming algorithms to minimize energy consumption while satisfying operational constraints including punctuality, speed limits, and train performance characteristics.
 
+## Table of Contents
+- [Project Structure](#project-structure)
+- [Installation and Usage](#installation-and-usage)
+- [File Descriptions](#file-descriptions)
+- [Example Usage](#example-usage)
+- [Requirements](#requirements)
+- [Algorithm Introduction](#algorithm-introduction)
 
+## Project Structure
+
+```
+Train_Speed_Profile_Optimization_Based_on_DynamicProgramming/
+├── 03-线路参数.xlsx           # Track data (speed limits, gradients, curves, stations)
+├── Global.m                   # Global parameters and configuration
+├── DynamicProgram.m          # Main dynamic programming algorithm
+├── tset.m                    # Test script and visualization
+├── MaxCapacityCurve.m        # Maximum capacity speed curve generation
+├── GetTractionForce.m        # Train traction force calculation (HXD2)
+├── GetMaxBrakeForce.m        # Maximum braking force calculation
+├── GetBasicResistance.m      # Basic running resistance calculation
+├── GetAddResistance.m        # Additional resistance (gradient/curve)
+├── GetSpeedLimit.m           # Speed limit extraction from track data
+├── CalculateOneStep.m        # Single-step speed calculation
+└── README.md                 # Project documentation
+```
+
+## Installation and Usage
+
+### Prerequisites
+- **MATLAB**: R2016b or later
+- **Excel file**: Track data file `03-线路参数.xlsx` with proper sheet structure
+
+### Quick Start
+
+1. **Download and Setup**:
+   ```bash
+   # Clone or download this repository
+   # Ensure all .m files are in the same directory
+   # Verify 03-线路参数.xlsx is present
+   ```
+
+2. **Configure Parameters**: Edit `Global.m` to set your optimization parameters:
+   ```matlab
+   startStation = 1;           % Starting station index
+   endStation = 2;             % Destination station index
+   M = 194;                    % Train mass (tons)
+   MaxSpeed = 80;              % Maximum speed (km/h)
+   T = 110;                    % Time constraint (seconds)
+   step_s = 1;                 % Spatial discretization (meters)
+   step_v = 0.01;              % Speed discretization (m/s)
+   ```
+
+3. **Run Basic Optimization**:
+   ```matlab
+   % Initialize global parameters
+   Global;
+   
+   % Run optimization with specific penalty factor
+   lambda = 632858.8509;  % Time penalty coefficient
+   [s,v,F,T,E,Matrix_Jmin,Et,Eb,T1] = DynamicProgram(lambda);
+   
+   % Display results
+   fprintf('Running time: %.2f s\n', T);
+   fprintf('Energy consumption: %.2f J\n', E);
+   ```
+
+4. **Run Complete Test with Visualization**:
+   ```matlab
+   % Run the comprehensive test script
+   tset;
+   ```
+
+## File Descriptions
+
+### Core Algorithm Files
+
+#### `Global.m`
+**Purpose**: Central configuration file defining all global parameters
+
+**Key Parameters**:
+- **Vehicle dynamics**: Mass (M), efficiency (Eta), regenerative braking rate (alpha_Re)
+- **Force constraints**: Maximum traction/braking forces (Ft_max, Fd_max)
+- **Motion constraints**: Acceleration limits (a_max, a_min)
+- **Discretization**: Spatial step size (step_s), speed step size (step_v)
+- **Route definition**: Start/end stations, track data loading
+- **Time constraints**: Running time limit (T), tolerance (epsi_t)
+
+#### `DynamicProgram.m`
+**Purpose**: Main dynamic programming optimization algorithm
+
+**Function Signature**:
+```matlab
+[s,v,F,T,E,Matrix_Jmin,Et,Eb,T1] = DynamicProgram(lambda)
+```
+
+**Inputs**:
+- `lambda`: Time penalty coefficient for punctuality constraints
+
+**Outputs**:
+- `s`: Spatial coordinates [1×(N+1)] (m)
+- `v`: Optimized speed profile [1×(N+1)] (km/h)
+- `F`: Train forces at each point [1×(N+1)] (N)
+- `T`: Total running time (s)
+- `E`: Total energy consumption (J)
+- `Et`: Traction energy (J)
+- `Eb`: Braking energy (J)
+- `T1`: Partial running time (s)
+- `Matrix_Jmin`: Cost matrix for analysis
+
+**Algorithm Features**:
+- Vectorized computation for improved performance
+- Simultaneous handling of all speed states
+- Constraint enforcement (speed, force, acceleration)
+- Energy-time trade-off optimization
+
+### Helper Functions
+
+#### Track Data Processing
+- **`GetSpeedLimit.m`**: Extracts speed limits for the route with optional station stops
+- **`GetAddResistance.m`**: Calculates gradient and curve resistance
+- **`MaxCapacityCurve.m`**: Generates maximum feasible speed profile
+
+#### Train Dynamics
+- **`GetTractionForce.m`**: HXD2 locomotive traction characteristics
+- **`GetMaxBrakeForce.m`**: Maximum electric braking force
+- **`GetBasicResistance.m`**: Basic running resistance calculation
+
+#### Computational Support
+- **`CalculateOneStep.m`**: Forward/backward speed calculation for curve generation
+
+#### Testing and Visualization
+- **`tset.m`**: Comprehensive test script with visualization
+
+## Example Usage
+
+### Basic Optimization with Fixed Time Penalty
+```matlab
+clear; clc;
+Global;  % Load global parameters
+
+% Single optimization run
+lambda = 1e6;  % Time penalty coefficient
+[s,v,F,T,E] = DynamicProgram(lambda);
+
+% Display results
+fprintf('Running time: %.2f seconds\n', T);
+fprintf('Energy consumption: %.2f kJ\n', E/1000);
+fprintf('Average speed: %.2f km/h\n', mean(v));
+
+% Plot speed profile
+figure;
+plot(s, v, 'b-', 'LineWidth', 2);
+xlabel('Distance (m)');
+ylabel('Speed (km/h)');
+title('Optimized Speed Profile');
+grid on;
+```
+
+### Automated Time Constraint Satisfaction
+```matlab
+clear; clc;
+Global;
+
+global T; global epsi_t;
+lambda = 632858.8509;  % Initial guess
+
+% Iterative optimization to meet time constraint
+while(1)
+    [s,v,F,T_real,E] = DynamicProgram(lambda);
+    fprintf('Lambda: %.2f, Time: %.2f s, Target: %.2f s\n', lambda, T_real, T);
+    
+    if abs(T_real-T) <= epsi_t
+        break;
+    else
+        % Adjust penalty factor based on time deviation
+        lambda = lambda + ((T_real-T)/T)*lambda;
+    end
+end
+
+fprintf('\nOptimization converged:\n');
+fprintf('Final time: %.2f s (target: %.2f s)\n', T_real, T);
+fprintf('Energy consumption: %.2f kJ\n', E/1000);
+```
+
+### Visualization and Analysis
+```matlab
+% Run complete analysis with plots
+tset;  % This script provides comprehensive visualization
+
+% Additional force analysis
+figure;
+subplot(2,1,1);
+plot(s(1:end-1), F/1000, 'r-', 'LineWidth', 1.5);
+xlabel('Distance (m)'); ylabel('Force (kN)');
+title('Train Force Profile');
+grid on;
+
+subplot(2,1,2);
+speed_ms = v/3.6;
+accel = diff(speed_ms.^2)./(2*diff(s));
+plot(s(1:end-1), accel, 'g-', 'LineWidth', 1.5);
+xlabel('Distance (m)'); ylabel('Acceleration (m/s²)');
+title('Acceleration Profile');
+grid on;
+```
+
+## Requirements
+
+### Software Requirements
+- **MATLAB**: R2016b or later (uses basic functions, no special toolboxes required)
+- **Excel support**: Built-in `xlsread` function
+
+### Data Requirements
+The Excel file `03-线路参数.xlsx` must contain the following sheets:
+- **A1-A14车站**: Station positions (km)
+- **A1-A14限速**: Speed limits by track section (km/h)
+- **A1-A14坡度**: Track gradients (‰)
+- **A1-A14曲线**: Track curves (radius in meters)
+
+### Hardware Requirements
+- **Memory**: Minimum 2GB RAM (depends on discretization resolution)
+- **Processing**: Computation time varies with grid size
+  - Fine grid (step_s=1m, step_v=0.01m/s): ~1-5 seconds
+  - Coarse grid (step_s=10m, step_v=0.1m/s): ~0.1-0.5 seconds
+
+## Configuration Notes
+
+### Discretization Trade-offs
+- **Finer discretization**: Higher accuracy, longer computation time
+- **Coarser discretization**: Faster computation, reduced accuracy
+- **Recommended**: start with coarse grid for testing, refine for final results
+
+### Parameter Tuning
+- **Time penalty (λ)**: Higher values prioritize punctuality over energy
+- **Efficiency (Eta)**: Set to 1 for ideal case, <1 for realistic losses
+- **Regenerative braking (alpha_Re)**: Set to 0 to disable energy recovery
+
+### Train Model Customization
+To adapt for different train types, modify:
+- `GetTractionForce.m`: Traction force curves
+- `GetMaxBrakeForce.m`: Braking force curves
+- `GetBasicResistance.m`: Resistance coefficients
+- Mass and other parameters in `Global.m`
+
+---
 
 ## Algorithm Introduction
 

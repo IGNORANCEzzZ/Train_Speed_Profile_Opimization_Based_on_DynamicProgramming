@@ -1,9 +1,9 @@
 function [ output_args ] = GetBasicResistance( speed )
-%计算列车运行基本阻力
-%输入参数：
-    %speed：列车运行速度,km/h
-%输出参数：
-    %阻力 单位：N/KN(牛每千牛)
+% Calculate train basic running resistance
+% Input parameters:
+    % speed: Train running speed, km/h
+% Output parameters:
+    % Resistance, unit: N/KN (Newton per kilonewton)
 % a=2.031;
 % b=0.0622;
 % c=0.001807;
